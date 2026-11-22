@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Выбор совместного места отдыха</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+            font-size: 2.2em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #6c757d;
+            margin-bottom: 25px;
+            font-size: 1.1em;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button.secondary { background: #6c757d; }
+        button.secondary:hover { background: #5a6268; }
+        button.danger { background: #dc3545; }
+        button.danger:hover { background: #c82333; }
+
+        input[type="text"], select {
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"] { width: 100%; max-width: 300px; }
+        input[type="text"]:focus, select:focus { outline: none; border-color: #667eea; }
+
+        .list-container {
+            margin-top: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            min-height: 80px;
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+        }
+
+        .list-item span { flex: 1; font-weight: 500; }
+
+        .profile-display {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid #e9ecef;
+            min-height: 100px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .profile-item {
+            padding: 10px;
+            margin: 5px 0;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+        }
+
+        .results { display: none; margin-top: 30px; }
+        .results.show { display: block; }
+
+        .result-card {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .result-card h3 { color: #667eea; margin-bottom: 10px; font-size: 1.2em; }
+
+        .result-card .winner {
+            font-size: 1.15em;
+            font-weight: bold;
+            color: #28a745;
+            margin: 8px 0;
+        }
+
+        .explanation {
+            margin-top: 12px;
+            padding: 12px;
+            background: #eef2ff;
+            border-left: 4px solid #667eea;
+            border-radius: 6px;
+            color: #333;
+            font-size: 0.95em;
+            line-height: 1.5;
+        }
+
+        .explanation strong { color: #667eea; }
+
+        .result-card .scores { margin-top: 10px; }
+
+        .result-card .score-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px;
+            margin: 4px 0;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.show { display: flex; align-items: center; justify-content: center; }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-content h2 { color: #667eea; margin-bottom: 20px; }
+
+        .ranking-item {
+            margin: 12px 0;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .ranking-item label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .ranking-item select {
+            width: 100%;
+            padding: 10px;
+            background: white;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-size: 18px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hint {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Выбор совместного места отдыха</h1>
+        <p class="subtitle">Экспертная система поддержки коллективных решений</p>
+
+        <!-- Справочник вариантов -->
+        <div class="section">
+            <h2>Варианты места отдыха</h2>
+            <div class="button-group">
+                <input type="text" id="alternativeInput" placeholder="Введите свой вариант...">
+                <button onclick="addAlternative()">Добавить свой</button>
+            </div>
+            <div class="button-group" style="margin-top: 10px;">
+                <select id="catalogSelect" style="flex: 1; max-width: 300px;">
+                    <option value="">-- Выбрать из справочника --</option>
+                    <option value="Пляж на море">Пляж на море</option>
+                    <option value="Горный курорт">Горный курорт</option>
+                    <option value="Дача">Дача</option>
+                    <option value="Поход с палатками">Поход с палатками</option>
+                    <option value="Экскурсия по городам">Экскурсия по городам</option>
+                    <option value="Круиз на теплоходе">Круиз на теплоходе</option>
+                    <option value="Оздоровительный санаторий">Оздоровительный санаторий</option>
+                </select>
+                <button onclick="addFromCatalog()">Добавить из справочника</button>
+            </div>
+            <p class="hint">Используйте справочник, чтобы быстро добавить популярные варианты, или введите свой.</p>
+            <div class="list-container" id="alternativesList"></div>
+        </div>
+
+        <!-- Избиратели -->
+        <div class="section">
+            <h2>Участники голосования</h2>
+            <div class="button-group">
+                <input type="text" id="voterInput" placeholder="Введите имя участника">
+                <button onclick="addVoter()">Добавить участника</button>
+            </div>
+            <div class="list-container" id="votersList"></div>
+        </div>
+
+        <!-- Профиль голосования -->
+        <div class="section">
+            <h2>Профиль голосования</h2>
+            <div class="button-group">
+                <button onclick="collectVotes()">Провести голосование</button>
+                <button class="secondary" onclick="clearProfile()">Очистить профиль</button>
+            </div>
+            <div class="profile-display" id="profileDisplay">
+                <p style="color: #6c757d; text-align: center; padding: 20px;">
+                    Здесь появятся предпочтения каждого участника после голосования
+                </p>
+            </div>
+        </div>
+
+        <!-- Кнопка расчёта -->
+        <div class="section">
+            <div class="button-group">
+                <button onclick="calculateResults()" style="font-size: 18px; padding: 15px 30px;">
+                    Показать результаты
+                </button>
+            </div>
+        </div>
+
+        <!-- Результаты -->
+        <div class="results" id="resultsSection">
+            <h2 style="color: #667eea; margin-bottom: 20px;">Результаты голосования</h2>
+            <div id="resultsContent"></div>
+        </div>
+
+        <!-- Модальное окно голосования -->
+        <div class="modal" id="votingModal">
+            <div class="modal-content">
+                <h2 id="voterNameTitle">Голосование</h2>
+                <div id="rankingContainer"></div>
+                <div class="button-group" style="margin-top: 20px;">
+                    <button onclick="submitVote()">Подтвердить</button>
+                    <button class="secondary" onclick="cancelVote()">Отмена</button>
+                </div>
+                <div id="voteError" class="error" style="display: none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Данные приложения
+        let alternatives = [];
+        let voters = [];
+        let profile = [];
+        let currentVoterIndex = 0;
+
+        // Добавление вариантов
+        function addAlternative() {
+            const input = document.getElementById('alternativeInput');
+            const value = input.value.trim();
+            if (!value) { alert('Введите вариант'); return; }
+            if (alternatives.includes(value)) { alert('Такой вариант уже есть'); return; }
+            alternatives.push(value);
+            input.value = '';
+            updateAlternativesList();
+        }
+
+        function addFromCatalog() {
+            const select = document.getElementById('catalogSelect');
+            const value = select.value;
+            if (!value) { alert('Выберите вариант из справочника'); return; }
+            if (alternatives.includes(value)) { alert('Такой вариант уже добавлен'); return; }
+            alternatives.push(value);
+            select.value = '';
+            updateAlternativesList();
+        }
+        // Обновление списка альтернатив
+        function updateAlternativesList() {
+            const list = document.getElementById('alternativesList');
+            list.innerHTML = '';
+            if (alternatives.length === 0) {
+                list.innerHTML = '<p style="color:#6c757d; text-align:center; padding:10px;">Пока нет вариантов. Добавьте из справочника или вручную.</p>';
+                return;
+            }
+            alternatives.forEach((alt, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `<span>${alt}</span><button class="danger" onclick="removeAlternative(${index})">Удалить</button>`;
+                list.appendChild(item);
+            });
+        }
+
+        function removeAlternative(index) {
+            alternatives.splice(index, 1);
+            updateAlternativesList();
+        }
+
+        // Избиратели
+        function addVoter() {
+            const input = document.getElementById('voterInput');
+            const value = input.value.trim();
+            if (!value) { alert('Введите имя'); return; }
+            if (voters.includes(value)) { alert('Такой участник уже есть'); return; }
+            voters.push(value);
+            input.value = '';
+            updateVotersList();
+        }
+
+        function updateVotersList() {
+            const list = document.getElementById('votersList');
+            list.innerHTML = '';
+            if (voters.length === 0) {
+                list.innerHTML = '<p style="color:#6c757d; text-align:center; padding:10px;">Пока нет участников.</p>';
+                return;
+            }
+            voters.forEach((voter, index) => {
+                const item = document.createElement('div');
+                item.className = 'list-item';
+                item.innerHTML = `<span>${voter}</span><button class="danger" onclick="removeVoter(${index})">Удалить</button>`;
+                list.appendChild(item);
+            });
+        }
+
+        function removeVoter(index) {
+            voters.splice(index, 1);
+            updateVotersList();
+        }
+
+        // Голосование
+        function collectVotes() {
+            if (alternatives.length === 0) { alert('Сначала добавьте варианты'); return; }
+            if (voters.length === 0) { alert('Сначала добавьте участников'); return; }
+            profile = [];
+            currentVoterIndex = 0;
+            showVotingModal();
+        }
+
+        function showVotingModal() {
+            if (currentVoterIndex >= voters.length) {
+                document.getElementById('votingModal').classList.remove('show');
+                updateProfileDisplay();
+                return;
+            }
+            const modal = document.getElementById('votingModal');
+            const title = document.getElementById('voterNameTitle');
+            const container = document.getElementById('rankingContainer');
+            const errorDiv = document.getElementById('voteError');
+
+            title.textContent = `Голосование: ${voters[currentVoterIndex]}`;
+            errorDiv.style.display = 'none';
+            container.innerHTML = '';
+
+            for (let i = 0; i < alternatives.length; i++) {
+                const item = document.createElement('div');
+                item.className = 'ranking-item';
+                item.innerHTML = `
+                    <label>Место ${i + 1}:</label>
+                    <select id="rank${i}">
+                        <option value="">Выберите вариант</option>
+                        ${alternatives.map(alt => `<option value="${alt}">${alt}</option>`).join('')}
+                    </select>
+                `;
+                container.appendChild(item);
+            }
+            modal.classList.add('show');
+        }
+
+        function validateRanking() {
+            const selected = [];
+            for (let i = 0; i < alternatives.length; i++) {
+                const select = document.getElementById(`rank${i}`);
+                if (select.value) selected.push(select.value);
+            }
+            const unique = new Set(selected);
+            return selected.length === unique.size && selected.length === alternatives.length;
+        }
+
+        function submitVote() {
+            const errorDiv = document.getElementById('voteError');
+            if (!validateRanking()) {
+                errorDiv.textContent = 'Все места должны быть заполнены уникальными вариантами!';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            const ranking = [];
+            for (let i = 0; i < alternatives.length; i++) {
+                ranking.push(document.getElementById(`rank${i}`).value);
+            }
+            profile.push(ranking);
+            currentVoterIndex++;
+            showVotingModal();
+        }
+
+        function cancelVote() {
+            document.getElementById('votingModal').classList.remove('show');
+            profile = [];
+            currentVoterIndex = 0;
+        }
+
+        function updateProfileDisplay() {
+            const display = document.getElementById('profileDisplay');
+            if (profile.length === 0) {
+                display.innerHTML = '<p style="color:#6c757d; text-align:center; padding:20px;">Здесь появятся предпочтения каждого участника после голосования</p>';
+                return;
+            }
+            display.innerHTML = '';
+            profile.forEach((ranking, index) => {
+                const item = document.createElement('div');
+                item.className = 'profile-item';
+                item.innerHTML = `<strong>${voters[index]}:</strong> ${ranking.join(' > ')}`;
+                display.appendChild(item);
+            });
+        }
+
+        function clearProfile() {
+            if (confirm('Очистить профиль голосования?')) {
+                profile = [];
+                updateProfileDisplay();
+            }
+        }
+
+        // Расчёт и отображение
+        async function calculateResults() {
+            if (profile.length === 0 || alternatives.length === 0) {
+                alert('Нет данных для анализа. Проведите голосование.');
+                return;
+            }
+            const resultsSection = document.getElementById('resultsSection');
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = '<div class="loading"><div class="spinner"></div>Вычисление результатов...</div>';
+            resultsSection.classList.add('show');
+
+            try {
+                const response = await fetch('/api/calculate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profile, alternatives })
+                });
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Ошибка');
+                }
+                const data = await response.json();
+                displayResults(data);
+            } catch (error) {
+                resultsContent.innerHTML = `<div class="error">Ошибка: ${error.message}</div>`;
+            }
+        }
+
+        function displayResults(data) {
+            const resultsContent = document.getElementById('resultsContent');
+            const expl = data.explanations || {};
+
+            let html = '';
+
+            // 1. Относительное большинство
+            html += `
+                <div class="result-card">
+                    <h3>1. Относительное большинство</h3>
+                    <div class="winner">Победитель: ${data.relative_majority.winner}</div>
+                    <div class="explanation"><strong>Почему:</strong> ${expl.relative_majority || ''}</div>
+                    <div class="scores">
+                        ${Object.entries(data.relative_majority.counts).map(([alt, count]) =>
+                            `<div class="score-item"><span>${alt}</span><span>${count} первых мест</span></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 2. Кондорсе
+            html += `
+                <div class="result-card">
+                    <h3>2. Победитель по Кондорсе</h3>
+                    <div class="winner">${data.condorcet_winner ? 'Победитель: ' + data.condorcet_winner : 'Победитель отсутствует (парадокс Кондорсе)'}</div>
+                    <div class="explanation"><strong>Почему:</strong> ${expl.condorcet || ''}</div>
+                </div>
+            `;
+
+            // 3. Копленд
+            html += `
+                <div class="result-card">
+                    <h3>3. Правило Копленда</h3>
+                    <div class="winner">Победитель: ${data.copeland_winner}</div>
+                    <div class="explanation"><strong>Почему:</strong> ${expl.copeland || ''}</div>
+                    <div class="scores">
+                        ${Object.entries(data.copeland_scores).map(([alt, score]) =>
+                            `<div class="score-item"><span>${alt}</span><span>${score} очков</span></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 4. Симпсон
+            html += `
+                <div class="result-card">
+                    <h3>4. Правило Симпсона</h3>
+                    <div class="winner">Победитель: ${data.simpson_winner}</div>
+                    <div class="explanation"><strong>Почему:</strong> ${expl.simpson || ''}</div>
+                    <div class="scores">
+                        ${Object.entries(data.simpson_scores).map(([alt, score]) =>
+                            `<div class="score-item"><span>${alt}</span><span>Мин. поддержка: ${score}</span></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+
+            // 5. Борда
+            html += `
+                <div class="result-card">
+                    <h3>5. Модель Борда</h3>
+                    <div class="winner">Победитель: ${data.borda_winner}</div>
+                    <div class="explanation"><strong>Почему:</strong> ${expl.borda || ''}</div>
+                    <div class="scores">
+                        ${Object.entries(data.borda_scores).map(([alt, score]) =>
+                            `<div class="score-item"><span>${alt}</span><span>${score} очков</span></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+
+            resultsContent.innerHTML = html;
+            resultsContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Enter в полях ввода
+        document.getElementById('alternativeInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') addAlternative();
+        });
+        document.getElementById('voterInput').addEventListener('keypress', e => {
+            if (e.key === 'Enter') addVoter();
+        });
+
+        // Инициализация пустых списков
+        updateAlternativesList();
+        updateVotersList();
+    </script>
+</body>
+</html>
